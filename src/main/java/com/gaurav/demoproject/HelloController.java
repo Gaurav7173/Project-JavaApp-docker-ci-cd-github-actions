@@ -8,7 +8,7 @@ public class HelloController {
 
     @GetMapping("/")
     public String home() {
-        return "Hello Gaurav! Java application is running.";
+        return "Hello Gaurav! Java application is running on blue-green deployment.";
     }
 
     @GetMapping("/health")
