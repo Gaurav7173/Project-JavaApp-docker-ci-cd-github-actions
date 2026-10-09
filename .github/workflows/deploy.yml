@@ -33,7 +33,7 @@ jobs:
               username: ${{ secrets.DOCKER_USERNAME}}
               password: ${{ secrets.DOCKER_PASSWORD }}
           - name: Push Docker image            
-            run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.image_name }} :latest
+            run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.image_name }}:latest
 
           - name: Deploy to server
             uses: appleboy/ssh-action@v1.2.0
