@@ -1,50 +1,97 @@
+# Workflow ka naam, jo GitHub Actions ke tab mein dikhega
 name: Java App Build and Auto Deploy
 
+# Define karta hai ki workflow kab execute hoga
 on:
+  # Jab GitHub repository mein code push hoga
   push:
+    # Sirf main branch par push hone par workflow trigger hoga
     branches:
       - main
 
+# Environment variables define karne ke liye
 env:
+  # Docker image ka naam set kiya gaya hai
   IMAGE_NAME: demoproject
 
+# Workflow ke jobs define karte hain
 jobs:
+  # Job ka internal naam
   build-deploy:
+
+    # Job GitHub ke hosted Ubuntu runner par execute hoga
     runs-on: ubuntu-latest
 
+    # Job ke andar execute hone wale steps
     steps:
+
+      # Step 1: GitHub repository ka code runner par download karega
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Java Development Kit (JDK) 17 setup karega
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
+          # Eclipse Temurin distribution use hogi
           distribution: temurin
+
+          # Java version 17 install/configure hogi
           java-version: '17'
 
+      # Step 3: Java application ko build karega
       - name: Build Java Application
+        # Maven Wrapper ko executable banayega aur clean package command run karega
+        # -DskipTests ka matlab hai ki is build mein tests skip honge
         run: chmod +x mvnw && ./mvnw clean package -DskipTests
 
+      # Step 4: Docker Hub mein login karega
       - name: Login to Docker Hub
+        # Docker ki official login action use hogi
         uses: docker/login-action@v4
         with:
+          # GitHub Secrets se Docker Hub username lega
           username: ${{ secrets.DOCKER_USERNAME }}
+
+          # GitHub Secrets se Docker Hub password/token lega
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Step 5: Docker image build karke Docker Hub par push karega
       - name: Build and Push Docker Image
+        # Docker image build aur push karne ke liye action
         uses: docker/build-push-action@v6
         with:
+          # Current repository directory ko Docker build context banayega
           context: .
+
+          # Build hone ke baad image Docker Hub par push hogi
           push: true
+
+          # Image ka naam aur tag set karega
+          # Example: gkumar7173/demoproject:latest
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
+      # Step 6: SSH ke through AWS EC2 par connect karke deployment karega
       - name: Deploy to EC2
+        # SSH commands execute karne ke liye action
         uses: appleboy/ssh-action@v1.2.0
         with:
+          # GitHub Secret se EC2 ka public IP address lega
           host: ${{ secrets.SERVER_IP }}
+
+          # EC2 ka SSH username lega, jaise ubuntu
           username: ${{ secrets.SERVER_USERNAME }}
+
+          # SSH private key GitHub Secrets se lega
           key: ${{ secrets.SERVER_SSH_KEY }}
+
+          # SSH connection ke liye port 22 use karega
           port: 22
+
+          # EC2 par execute hone wali commands
           script: |
+            # Ubuntu user ke home directory mein jayega
             cd /home/ubuntu
+
+            # Blue-Green deployment script execute karega
             ./deploy-blue-green.sh
