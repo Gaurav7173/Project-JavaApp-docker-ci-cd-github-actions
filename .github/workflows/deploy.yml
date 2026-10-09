@@ -1,4 +1,4 @@
-name: java app build and deploy
+name: java app build and auto deploy
 
 on:
   push:
